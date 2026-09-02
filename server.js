@@ -13,7 +13,8 @@ import { randomBytes, createHmac, timingSafeEqual, createHash } from 'node:crypt
 
 import {
   getSettings, allCategories, productBySlug, productById,
-  searchProducts, relatedProducts, createOrder, orderByRef, UPLOAD_DIR, DATA_DIR,
+  searchProducts, relatedProducts, createOrder, orderByRef,
+  UPLOAD_DIR, UPLOAD_WRITE_DIR, DATA_DIR, SERVERLESS,
 } from './db.js';
 import * as V from './views.js';
 import { adminRoutes } from './admin.js';
@@ -37,9 +38,17 @@ export const SITE_URL = (process.env.SITE_URL || `http://localhost:${PORT}`).rep
 function loadSecret() {
   if (process.env.APP_SECRET && process.env.APP_SECRET.length >= 32) return process.env.APP_SECRET;
   const file = join(DATA_DIR, '.secret');
-  if (existsSync(file)) return readFileSync(file, 'utf8').trim();
+  try {
+    if (existsSync(file)) return readFileSync(file, 'utf8').trim();
+  } catch { /* unreadable — fall through and generate one */ }
   const s = randomBytes(32).toString('hex');
+  // Best effort. On a serverless instance this lands in /tmp and dies with it,
+  // which is why APP_SECRET should be set there. Never fatal.
   writeFile(file, s, { mode: 0o600 }).catch(() => {});
+  if (SERVERLESS && !process.env.APP_SECRET) {
+    console.warn('[secret] APP_SECRET is not set — order confirmation links will ' +
+                 'stop resolving once this instance is recycled.');
+  }
   return s;
 }
 const SECRET = loadSecret();
@@ -582,7 +591,7 @@ async function handlePublic(req, res, url, nonce) {
 
 // ---------------------------------------------------------------- server
 
-const server = http.createServer(async (req, res) => {
+export async function handleRequest(req, res) {
   const nonce = randomBytes(16).toString('base64');
   let url;
   try {
@@ -605,7 +614,13 @@ const server = http.createServer(async (req, res) => {
       if (await serveStatic(req, res, PUBLIC_DIR, path.slice(1))) return;
     }
     if (path.startsWith('/uploads/')) {
-      if (await serveStatic(req, res, UPLOAD_DIR, decodeURIComponent(path.slice('/uploads/'.length)), { immutable: true })) return;
+      const name = decodeURIComponent(path.slice('/uploads/'.length));
+      // Bundled photography first, then anything uploaded into the writable
+      // overlay during this instance's life. Identical locally, where the two
+      // paths are the same directory.
+      if (await serveStatic(req, res, UPLOAD_DIR, name, { immutable: true })) return;
+      if (UPLOAD_WRITE_DIR !== UPLOAD_DIR &&
+          await serveStatic(req, res, UPLOAD_WRITE_DIR, name, { immutable: true })) return;
       res.writeHead(404).end();
       return;
     }
@@ -635,9 +650,16 @@ const server = http.createServer(async (req, res) => {
       nonce
     );
   }
-});
+}
 
-server.listen(PORT, HOST, () => {
+// Serverless platforms import this module and invoke the default export per
+// request; they never let a process hold a listening socket. Locally nothing
+// changes — a real server still listens on PORT.
+export default handleRequest;
+
+const server = SERVERLESS ? null : http.createServer(handleRequest);
+
+if (server) server.listen(PORT, HOST, () => {
   console.log(`\n  QiT PiT Center running`);
   console.log(`  Storefront   ${SITE_URL}`);
   console.log(`  Admin panel  ${SITE_URL}/admin`);

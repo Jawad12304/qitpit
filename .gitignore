@@ -1,7 +1,10 @@
-# Database, generated secret, and everything the shop owner uploads
+# Database and generated secret — never committed
 data/
-uploads/*
-!uploads/.gitkeep
+
+# The shop's photography IS committed: it is the deployed read-only image
+# store, and without it a hosted preview renders with no product imagery.
+# The multi-megabyte masters stay out.
+uploads/_originals/
 
 # Environment
 .env

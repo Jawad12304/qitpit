@@ -7,11 +7,42 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
-export const DATA_DIR = process.env.DATA_DIR || join(ROOT, 'data');
-export const UPLOAD_DIR = process.env.UPLOAD_DIR || join(ROOT, 'uploads');
 
-mkdirSync(DATA_DIR, { recursive: true });
-mkdirSync(UPLOAD_DIR, { recursive: true });
+/**
+ * Serverless platforms (Vercel, Lambda) mount the deployment read-only at
+ * /var/task and give you exactly one writable directory: /tmp. It is also
+ * ephemeral — it lives as long as the instance does.
+ *
+ * So the paths split in two:
+ *   UPLOAD_DIR       where images are READ from — the deployed bundle
+ *   UPLOAD_WRITE_DIR where new images are WRITTEN — /tmp when serverless
+ *   DATA_DIR         the SQLite database — /tmp when serverless
+ *
+ * Locally all three resolve to the same ./data and ./uploads they always did,
+ * so Windows development is byte-for-byte unchanged.
+ */
+export const SERVERLESS = Boolean(
+  process.env['VERCEL'] || 
+  process.env['AWS_LAMBDA_FUNCTION_NAME'] || 
+  process.env['NETLIFY'] ||
+  ROOT.startsWith('/var/task')
+);
+const WRITABLE_ROOT = SERVERLESS ? join('/tmp', 'qitpit') : ROOT;
+
+export const DATA_DIR = process.env.DATA_DIR || join(WRITABLE_ROOT, 'data');
+export const UPLOAD_DIR = process.env.UPLOAD_DIR || join(ROOT, 'uploads');
+export const UPLOAD_WRITE_DIR =
+  process.env.UPLOAD_WRITE_DIR || (SERVERLESS ? join(WRITABLE_ROOT, 'uploads') : UPLOAD_DIR);
+
+// Only ever create the directories we intend to write to, and never let a
+// read-only filesystem take the whole module down at import time.
+for (const dir of new Set([DATA_DIR, UPLOAD_WRITE_DIR])) {
+  try {
+    mkdirSync(dir, { recursive: true });
+  } catch (err) {
+    console.warn(`[fs] could not create ${dir}: ${err.code || err.message}`);
+  }
+}
 
 export const db = new DatabaseSync(join(DATA_DIR, 'qitpit.db'));
 
