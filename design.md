@@ -1,0 +1,70 @@
+# Chitrali Saughat
+
+## Mission
+Create implementation-ready, token-driven UI guidance for Chitrali Saughat that is optimized for consistency, accessibility, and fast delivery across e-commerce storefront.
+
+## Brand
+- Product/brand: Chitrali Saughat
+- URL: https://chitralisaughat.com/
+- Audience: online shoppers and consumers
+- Product surface: e-commerce storefront
+
+## Style Foundations
+- Visual style: clean, functional, implementation-oriented
+- Main font style: `font.family.primary=Montserrat`, `font.family.stack=Montserrat, sans-serif`, `font.size.base=14px`, `font.weight.base=400`, `font.lineHeight.base=normal`
+- Typography scale: `font.size.xs=0px`, `font.size.sm=11px`, `font.size.md=12px`, `font.size.lg=13px`, `font.size.xl=14px`, `font.size.2xl=15px`, `font.size.3xl=16px`, `font.size.4xl=20px`
+- Color palette: `color.text.primary=#313131`, `color.text.secondary=#136b37`, `color.text.tertiary=#111111`, `color.text.inverse=#ffffff`, `color.surface.base=#000000`, `color.surface.muted=#ff7043`, `color.surface.strong=#f5f5f5`
+- Spacing scale: `space.1=5px`, `space.2=8px`, `space.3=10px`, `space.4=11px`, `space.5=12px`, `space.6=13px`, `space.7=15px`, `space.8=18px`
+- Radius/shadow/motion tokens: `radius.xs=4px`, `radius.sm=50px` | `shadow.1=rgba(0, 0, 0, 0.2) 0px 2px 6px 0px`, `shadow.2=rgba(190, 190, 190, 0.46) 0px 1px 5px 0px`, `shadow.3=rgba(7, 94, 84, 0.24) 1px 6px 24px 0px` | `motion.duration.instant=200ms`, `motion.duration.fast=250ms`, `motion.duration.normal=300ms`
+
+## Accessibility
+- Target: WCAG 2.2 AA
+- Keyboard-first interactions required.
+- Focus-visible rules required.
+- Contrast constraints required.
+
+## Writing Tone
+Concise, confident, implementation-focused.
+
+## Rules: Do
+- Use semantic tokens, not raw hex values, in component guidance.
+- Every component must define states for default, hover, focus-visible, active, disabled, loading, and error.
+- Component behavior should specify responsive and edge-case handling.
+- Interactive components must document keyboard, pointer, and touch behavior.
+- Accessibility acceptance criteria must be testable in implementation.
+
+## Rules: Don't
+- Do not allow low-contrast text or hidden focus indicators.
+- Do not introduce one-off spacing or typography exceptions.
+- Do not use ambiguous labels or non-descriptive actions.
+- Do not ship component guidance without explicit state rules.
+
+## Guideline Authoring Workflow
+1. Restate design intent in one sentence.
+2. Define foundations and semantic tokens.
+3. Define component anatomy, variants, interactions, and state behavior.
+4. Add accessibility acceptance criteria with pass/fail checks.
+5. Add anti-patterns, migration notes, and edge-case handling.
+6. End with a QA checklist.
+
+## Required Output Structure
+- Context and goals.
+- Design tokens and foundations.
+- Component-level rules (anatomy, variants, states, responsive behavior).
+- Accessibility requirements and testable acceptance criteria.
+- Content and tone standards with examples.
+- Anti-patterns and prohibited implementations.
+- QA checklist.
+
+## Component Rule Expectations
+- Include keyboard, pointer, and touch behavior.
+- Include spacing and typography token requirements.
+- Include long-content, overflow, and empty-state handling.
+- Include known page component density: links (183), buttons (93), lists (13), navigation (5), inputs (1), cards (1).
+
+
+## Quality Gates
+- Every non-negotiable rule must use "must".
+- Every recommendation should use "should".
+- Every accessibility rule must be testable in implementation.
+- Teams should prefer system consistency over local visual exceptions.

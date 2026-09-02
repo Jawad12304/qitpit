@@ -1,0 +1,14 @@
+# Database, generated secret, and everything the shop owner uploads
+data/
+uploads/*
+!uploads/.gitkeep
+
+# Environment
+.env
+.env.*
+!.env.example
+
+node_modules/
+npm-debug.log*
+.DS_Store
+Thumbs.db
